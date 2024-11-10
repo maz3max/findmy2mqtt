@@ -1,0 +1,2 @@
+findmy==0.7.5
+paho-mqtt==2.1.0
