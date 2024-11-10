@@ -94,9 +94,9 @@ def on_connect(client, userdata, flags, reason_code, properties):
         logging.error(f"Failed to connect to MQTT server, reason code {reason_code}")
         has_mqtt = False
 
-def on_disconnect(self, client, userdata, flags, reason_code, properties):
+def on_disconnect(*args):
     global has_mqtt
-    logging.error(f"Disconnected from MQTT server, reason code {rc}")
+    logging.error(f"Disconnected from MQTT server")
     has_mqtt = False
 
 # The callback for when a PUBLISH message is received from the server.
