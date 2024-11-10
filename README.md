@@ -41,12 +41,12 @@ services:
       - 9001:9001
 
   findmy2mqtt:
-    image: maz3max/findmy2mqtt:0.1.0
+    image: maz3max/findmy2mqtt:0.2.0
     environment:
       - MQTT_HOST="mqtt://mqtt"
       - MQTT_PORT=1883
-      - MQTT_USERNAME=test
-      - MQTT_PASSWORD=very-secure-password
+      - MQTT_USER=test
+      - MQTT_PASS=very-secure-password
       - MQTT_TOPIC=findmy
       - ANISETTE_SERVER=http://0.0.0.0:6969
       - FETCH_INTERVAL_MINUTES=1
