@@ -104,8 +104,24 @@ def on_message(client, userdata, msg):
     logging.info(msg.topic+" "+str(msg.payload))
     message_received_event.set()
 
+positions = []
+positions_lock = threading.Lock()
 
-def main():
+def update_positions(report, name):
+    global positions
+
+    ts = str(report.timestamp)
+    with positions_lock:
+        for p in positions:
+            if p["name"] == name and ts > p["ts"]:
+                p["lat"] = report.latitude
+                p["lon"] = report.longitude
+                p["ts"] = ts
+                return
+        positions.append({"id": len(positions) + 1, "lat": report.latitude, "lon": report.longitude, "name": name, "ts": ts})
+
+
+def fetcher_thread():
     airtags = []
     airtag_names = []
     for file in os.listdir(AIRTAG_FOLDER):
@@ -150,7 +166,7 @@ def main():
                     reports[i] = new_reports
                     reports_to_publish[i] = [r for r in new_reports if r not in old_reports]
             except Exception as e:
-                logging.error(f"Error fetching reports: {e}")                               
+                logging.error(f"Error fetching reports: {e}")
 
             logging.info("Publishing reports")
             for i, airtag in enumerate(airtags):
@@ -164,6 +180,7 @@ def main():
                         }
                     report_str = json.dumps(report_obj)
                     mqttc.publish(f"{MQTT_TOPIC}/dev/{airtag_names[i]}", report_str)
+                    update_positions(report, airtag_names[i])
 
         # Wait for the event with a timeout
         logging.info(f"Waiting for {FETCH_INTERVAL_MINUTES} minutes")
@@ -172,5 +189,19 @@ def main():
 
     mqttc.loop_stop()
 
+from flask import Flask, render_template, jsonify
+
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return render_template("map.html")
+
+@app.route("/positions")
+def get_positions():
+    with positions_lock:
+        return jsonify(positions)
+
 if __name__ == "__main__":
-    main()
+    threading.Thread(target=fetcher_thread).start()
+    app.run(debug=True, port=5105)

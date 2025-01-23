@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map with Flask</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 90vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Positions and Paths</h1>
+    <div id="map"></div>
+    <script>
+        const map = L.map('map').setView([37.7749, -122.4194], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Fetch positions and add markers
+        fetch('/positions')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(pos => {
+                    L.marker([pos.lat, pos.lon])
+                        .addTo(map)
+                        .bindPopup(pos.name);
+                });
+            });
+    </script>
+</body>
+</html>
