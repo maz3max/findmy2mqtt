@@ -113,10 +113,11 @@ def update_positions(report, name):
     ts = str(report.timestamp)
     with positions_lock:
         for p in positions:
-            if p["name"] == name and ts > p["ts"]:
-                p["lat"] = report.latitude
-                p["lon"] = report.longitude
-                p["ts"] = ts
+            if p["name"] == name:
+                if ts > p["ts"]:
+                    p["lat"] = report.latitude
+                    p["lon"] = report.longitude
+                    p["ts"] = ts
                 return
         positions.append({"id": len(positions) + 1, "lat": report.latitude, "lon": report.longitude, "name": name, "ts": ts})
 
@@ -199,9 +200,11 @@ def index():
 
 @app.route("/positions")
 def get_positions():
+    message_received_event.set()
     with positions_lock:
-        return jsonify(positions)
+        positions_without_ts = [{"id": p["id"], "lat": p["lat"], "lon": p["lon"], "name": p["name"]} for p in positions]
+        return jsonify(positions_without_ts)
 
 if __name__ == "__main__":
     threading.Thread(target=fetcher_thread).start()
-    app.run(debug=True, port=5105)
+    app.run(port=5105, host='0.0.0.0')
