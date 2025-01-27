@@ -14,25 +14,41 @@
     </style>
 </head>
 <body>
-    <h1>Positions and Paths</h1>
     <div id="map"></div>
     <script>
-        const map = L.map('map').setView([37.7749, -122.4194], 6);
+        const map = L.map('map').setView([63.43209106974908, 10.398044586181642], 17);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-        // Fetch positions and add markers
-        fetch('/positions')
+        let map_positioned = false;
+
+        // Function to fetch positions and add markers
+        function updateMarkers() {
+            fetch('/positions')
             .then(response => response.json())
             .then(data => {
                 data.forEach(pos => {
-                    L.marker([pos.lat, pos.lon])
-                        .addTo(map)
-                        .bindPopup(pos.name);
+                L.marker([pos.lat, pos.lon])
+                    .addTo(map)
+                    .bindPopup(pos.name);
                 });
+                if (data.length > 0 && !map_positioned) {
+                    map_positioned = true;
+                    map.setView([data[0].lat, data[0].lon], 17);
+                };
             });
+        }
+
+        // Initial call to update markers
+        updateMarkers();
+
+        // wait for 5 seconds before calling updateMarkers
+        setTimeout(updateMarkers, 5000);
+
+        // Call updateMarkers every 30 seconds
+        setInterval(updateMarkers, 30000);
     </script>
 </body>
 </html>
